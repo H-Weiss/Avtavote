@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useHistory } from 'react-router-dom';
 
 function Login({ setIsLoggedIn, setIsAdmin }) {
-  const [username, setUsername] = useState('');
+  const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const history = useHistory();
@@ -11,13 +11,13 @@ function Login({ setIsLoggedIn, setIsAdmin }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/login', { username, password });
+      const response = await axios.post('http://localhost:5000/login', { id, password });
       localStorage.setItem('token', response.data.token);
       setIsLoggedIn(true);
       setIsAdmin(response.data.is_admin);
       history.push('/surveys');
     } catch (error) {
-      setError('שם משתמש או סיסמה שגויים');
+      setError('פרטי התחברות שגויים');
     }
   };
 
@@ -28,9 +28,9 @@ function Login({ setIsLoggedIn, setIsAdmin }) {
       <form onSubmit={handleSubmit}>
         <input
           type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="שם משתמש"
+          value={id}
+          onChange={(e) => setId(e.target.value)}
+          placeholder="תעודת זהות"
           required
         />
         <input

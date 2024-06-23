@@ -7,6 +7,11 @@ from functools import wraps
 import datetime
 import os
 from dotenv import load_dotenv
+import random
+import string
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 load_dotenv()  # טעינת משתני הסביבה מקובץ .env
 
@@ -18,8 +23,10 @@ db = SQLAlchemy(app)
 
 # מודלים
 class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
+    id = db.Column(db.String(9), primary_key=True)  # ת.ז as primary key
+    first_name = db.Column(db.String(50), nullable=False)
+    last_name = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
 
@@ -44,6 +51,25 @@ class Vote(db.Model):
     voted_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     __table_args__ = (db.UniqueConstraint('user_id', 'survey_id', name='_user_survey_uc'),)
 
+def generate_password():
+    chars = string.ascii_letters + string.digits + string.punctuation
+    return ''.join(random.choice(chars) for _ in range(8))
+
+def send_email(to_email, subject, body):
+    sender_email = "hanan18@gmail.com"  # החלף עם כתובת המייל שלך
+    password = "H1818W1818"  # החלף עם הסיסמה שלך
+
+    message = MIMEMultipart()
+    message["From"] = sender_email
+    message["To"] = to_email
+    message["Subject"] = subject
+
+    message.attach(MIMEText(body, "plain"))
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(sender_email, password)
+        server.send_message(message)
+
 # פונקציית עזר לאימות טוקן
 def token_required(f):
     @wraps(f)
@@ -60,24 +86,117 @@ def token_required(f):
     return decorated
 
 # נתיבים
-@app.route('/register', methods=['POST'])
-def register():
-    data = request.json
-    hashed_password = generate_password_hash(data['password'])
-    new_user = User(username=data['username'], password_hash=hashed_password)
-    db.session.add(new_user)
-    db.session.commit()
-    return jsonify({"message": "User registered successfully"}), 201
-
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
-    user = User.query.filter_by(username=data['username']).first()
+    user = User.query.filter_by(id=data['id']).first()
     if user and check_password_hash(user.password_hash, data['password']):
-        token = jwt.encode({'user_id': user.id, 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)},
-                           app.config['SECRET_KEY'], algorithm="HS256")
+        token = jwt.encode({
+            'user_id': user.id,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+        }, app.config['SECRET_KEY'], algorithm="HS256")
         return jsonify({"token": token, "is_admin": user.is_admin}), 200
     return jsonify({"message": "Invalid credentials"}), 401
+
+@app.route('/create_user', methods=['POST'])
+@token_required
+def create_user(current_user):
+    if not current_user.is_admin:
+        return jsonify({"message": "Admin privileges required"}), 403
+    
+    data = request.json
+    errors = {}
+    
+    if len(data['id']) != 9 or not data['id'].isdigit():
+        errors['id'] = 'תעודת זהות חייבת להכיל 9 ספרות'
+    
+    if len(data['first_name']) < 2:
+        errors['first_name'] = 'שם פרטי חייב להכיל לפחות 2 תווים'
+    
+    if len(data['last_name']) < 2:
+        errors['last_name'] = 'שם משפחה חייב להכיל לפחות 2 תווים'
+    
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", data['email']):
+        errors['email'] = 'כתובת אימייל לא תקינה'
+    
+    if errors:
+        return jsonify({"message": "Invalid input", "errors": errors}), 400
+    
+    data = request.json
+    password = generate_password()
+    hashed_password = generate_password_hash(password)
+    
+    new_user = User(
+        id=data['id'],
+        first_name=data['first_name'],
+        last_name=data['last_name'],
+        email=data['email'],
+        password_hash=hashed_password
+    )
+    db.session.add(new_user)
+    db.session.commit()
+
+    # שליחת מייל למשתמש החדש
+    subject = "פרטי התחברות למערכת ההצבעות"
+    body = f"""
+    שלום {new_user.first_name} {new_user.last_name},
+
+    נוצר עבורך חשבון חדש במערכת ההצבעות.
+    להלן פרטי ההתחברות שלך:
+
+    תעודת זהות: {new_user.id}
+    סיסמא: {password}
+
+    אנא שנה את הסיסמא שלך בהתחברות הראשונה.
+
+    בברכה,
+    צוות מערכת ההצבעות
+    """
+    
+    try:
+        send_email(new_user.email, subject, body)
+        return jsonify({"message": "User created successfully and email sent"}), 201
+    except Exception as e:
+        return jsonify({"message": "User created but failed to send email", "error": str(e)}), 201
+
+@app.route('/users', methods=['GET'])
+@token_required
+def get_users(current_user):
+    if not current_user.is_admin:
+        return jsonify({"message": "Admin privileges required"}), 403
+    users = User.query.all()
+    return jsonify([{
+        'id': user.id,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'email': user.email,
+        'is_admin': user.is_admin
+    } for user in users]), 200
+
+@app.route('/user/<string:user_id>', methods=['PUT'])
+@token_required
+def update_user(current_user, user_id):
+    if not current_user.is_admin:
+        return jsonify({"message": "Admin privileges required"}), 403
+    user = User.query.get_or_404(user_id)
+    data = request.json
+    user.first_name = data.get('first_name', user.first_name)
+    user.last_name = data.get('last_name', user.last_name)
+    user.email = data.get('email', user.email)
+    user.is_admin = data.get('is_admin', user.is_admin)
+    db.session.commit()
+    return jsonify({"message": "User updated successfully"}), 200
+
+@app.route('/user/<string:user_id>', methods=['DELETE'])
+@token_required
+def delete_user(current_user, user_id):
+    if not current_user.is_admin:
+        return jsonify({"message": "Admin privileges required"}), 403
+    user = User.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({"message": "User deleted successfully"}), 200
+
 
 @app.route('/surveys', methods=['GET'])
 @token_required
@@ -230,18 +349,23 @@ def toggle_survey_lock(current_user, survey_id):
 
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()  # יצירת טבלאות בסיס הנתונים אם הן לא קיימות
+        db.create_all()
         
-        # בדוק אם יש כבר משתמש אדמין
         admin_user = User.query.filter_by(is_admin=True).first()
         if not admin_user:
-            # צור משתמש אדמין חדש
-            admin_username = "admin"
-            admin_password = "admin123"  # שנה את זה!
+            admin_id = "000000000"  # שנה את זה למספר ת.ז רצוי
+            admin_password = "admin"
             hashed_password = generate_password_hash(admin_password)
-            new_admin = User(username=admin_username, password_hash=hashed_password, is_admin=True)
+            new_admin = User(
+                id=admin_id, 
+                first_name="hanan",
+                last_name="weiss",
+                email="hanan@h-weiss.com",
+                password_hash=hashed_password, 
+                is_admin=True
+            )
             db.session.add(new_admin)
             db.session.commit()
-            print(f"Admin user created: {admin_username}")
+            print(f"Admin user created with ID: {admin_id} and password: {admin_password}")
     
     app.run(debug=True)

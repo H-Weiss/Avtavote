@@ -1,18 +1,10 @@
-:root {
-    --primary-color: #006633;
-    --secondary-color: #F7941D;
-    --background-color: #f0f0f0;
-    --text-color: #333;
-    --card-background: #ffffff;
-  }
-  
-  body {
+body {
     direction: rtl;
     font-family: 'Rubik', Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: var(--background-color);
-    color: var(--text-color);
+    background-color: #f0f0f0;
+    color: #333;
   }
   
   .App {
@@ -22,7 +14,7 @@
   }
   
   .App-header {
-    background-color: var(--primary-color);
+    background-color: #006633;
     padding: 20px;
     color: white;
     display: flex;
@@ -58,22 +50,22 @@
   }
   
   nav a:hover, nav button:hover {
-    background-color: var(--secondary-color);
+    background-color: #F7941D;
     color: white;
-    border-color: var(--secondary-color);
+    border-color: #F7941D;
   }
   
   main {
     flex: 1;
     padding: 40px;
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
     width: 100%;
     box-sizing: border-box;
   }
   
   .card {
-    background-color: var(--card-background);
+    background-color: white;
     padding: 30px;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -83,8 +75,8 @@
   .btn {
     display: inline-block;
     padding: 10px 20px;
-    margin: 10px;
-    background-color: var(--primary-color);
+    margin: 10px 5px;
+    background-color: #006633;
     color: white;
     text-decoration: none;
     border-radius: 5px;
@@ -95,11 +87,27 @@
   }
   
   .btn:hover {
-    background-color: var(--secondary-color);
+    background-color: #F7941D;  /* שינוי הצבע לכתום במעבר עכבר */
+  }
+  
+  .btn-secondary {
+    background-color: #F7941D;
+  }
+  
+  .btn-secondary:hover {
+    background-color: #006633;  /* שינוי הצבע לירוק כהה במעבר עכבר */
+  }
+  
+  .btn-danger {
+    background-color: #dc3545;
+  }
+  
+  .btn-danger:hover {
+    background-color: #F7941D;  /* שינוי הצבע לכתום במעבר עכבר */
   }
   
   footer {
-    background-color: var(--primary-color);
+    background-color: #006633;
     color: white;
     padding: 15px;
     text-align: center;
@@ -131,7 +139,7 @@
   input[type="password"]:focus,
   input[type="email"]:focus,
   textarea:focus {
-    border-color: var(--primary-color);
+    border-color: #006633;
     outline: none;
   }
   
@@ -148,7 +156,7 @@
   }
   
   th {
-    background-color: var(--primary-color);
+    background-color: #006633;
     color: white;
   }
   
@@ -162,7 +170,7 @@
   }
   
   .welcome-message h2 {
-    color: var(--primary-color);
+    color: #006633;
     font-size: 2.5rem;
     margin-bottom: 20px;
   }
@@ -171,34 +179,80 @@
     font-size: 1.2rem;
     margin-bottom: 30px;
   }
-
-  .btn-group {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 20px;
+  
+  .admin-panel h3 {
+    margin-top: 30px;
+    border-bottom: 2px solid #006633;
+    padding-bottom: 10px;
   }
   
-  .btn-secondary {
-    background-color: var(--secondary-color);
-    color: white;
+  .survey-item, .edit-survey-form, .new-survey-form, .edit-user-form {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 20px;
   }
   
-  .btn-secondary:hover {
-    background-color: #d97d16;
+  .survey-actions {
+    margin-top: 10px;
+  }
+  
+  .message {
+    background-color: #e0f2e9;
+    color: #006633;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+    text-align: center;
+  }
+  
+  .error-message {
+    background-color: #fde8e8;
+    color: #e53e3e;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+    text-align: center;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+    width: 100%;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .form-group input[type="checkbox"] {
+    margin-right: 5px;
+  }
+  
+  .surveys-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
   }
   
   .survey-item {
-    background-color: var(--card-background);
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
   }
   
-  .survey-item h3 {
-    color: var(--primary-color);
+  .survey-item h4 {
     margin-top: 0;
+    color: #006633;
+  }
+  
+  .survey-item ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .survey-item li {
+    margin-bottom: 5px;
   }
   
   .survey-options {
@@ -215,64 +269,80 @@
     margin-right: 10px;
   }
   
-  .message {
-    background-color: #e0f2e9;
-    color: var(--primary-color);
-    padding: 10px;
-    border-radius: 5px;
-    margin-top: 10px;
-    text-align: center;
+  @media (max-width: 768px) {
+    .App-header {
+      flex-direction: column;
+      text-align: center;
+    }
+  
+    nav {
+      margin-top: 20px;
+    }
+  
+    main {
+      padding: 20px;
+    }
+  
+    .surveys-list {
+      grid-template-columns: 1fr;
+    }
   }
   
-  .error-message {
-    background-color: #fde8e8;
-    color: #e53e3e;
-    padding: 10px;
-    border-radius: 5px;
-    margin-top: 10px;
-    text-align: center;
-  }
-
-  .survey-results {
+  /* Specific styles for CreateUser component */
+  .create-user-form {
     background-color: #f9f9f9;
     border: 1px solid #ddd;
     border-radius: 5px;
-    padding: 15px;
+    padding: 20px;
     margin-bottom: 20px;
   }
   
-  .survey-results h4 {
-    color: var(--primary-color);
+  .create-user-form h3 {
     margin-top: 0;
+    color: #006633;
   }
   
-  .survey-results ul {
-    list-style-type: none;
-    padding: 0;
+  .create-user-form .form-group {
+    margin-bottom: 15px;
   }
   
-  .survey-results li {
+  .create-user-form label {
+    display: block;
     margin-bottom: 5px;
   }
   
-  .admin-panel .card {
+  .create-user-form input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .create-user-form button {
+    margin-top: 10px;
+  }
+  
+  /* Additional styles for better spacing and alignment */
+  .admin-panel > * {
     margin-bottom: 30px;
   }
-
-  .survey-actions {
-    margin-top: 15px;
+  
+  .admin-panel h2 {
+    color: #006633;
+    border-bottom: 2px solid #006633;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
   }
   
-  .survey-actions button {
-    margin-right: 10px;
+  .user-table {
+    margin-top: 20px;
   }
   
-  .btn-danger {
-    background-color: #e53e3e;
+  .user-table th,
+  .user-table td {
+    text-align: center;
   }
   
-  .btn-danger:hover {
-    background-color: #c53030;
+  .user-table .btn {
+    margin: 2px;
   }
-
-  
